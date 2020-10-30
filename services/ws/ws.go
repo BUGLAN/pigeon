@@ -5,7 +5,6 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/gorilla/websocket"
 	"github.com/rs/zerolog"
-	"log"
 	"net/http"
 )
 
@@ -37,7 +36,7 @@ func (ctrl *Controller) ChatHandler(ctx *gin.Context) {
 
 	for {
 		mt, message, err := c.ReadMessage()
-		if err != nil && !websocket.IsCloseError(err, websocket.CloseNormalClosure) {
+		if err != nil && !websocket.IsCloseError(err, websocket.CloseNormalClosure, websocket.CloseGoingAway) {
 			ctrl.logger.Panic().Err(err).Msg("读取消息失败")
 			break
 		} else if err != nil {
@@ -46,8 +45,8 @@ func (ctrl *Controller) ChatHandler(ctx *gin.Context) {
 		}
 
 		ctrl.logger.Info().Msgf("recv: %s", message)
-		log.Printf("recv: %s", message)
 		err = c.WriteMessage(mt, message)
+		ctrl.logger.Info().Msgf("send: %s", message)
 		if err != nil {
 			ctrl.logger.Panic().Err(err).Msg("发送消息失败")
 			break
